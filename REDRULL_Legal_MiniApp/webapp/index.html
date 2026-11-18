@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#0b0b0d">
+  <title>REDRULL — магазин</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root{--bg:#09090b;--panel:#151518;--panel2:#1d1d22;--red:#ef233c;--red2:#b51229;--muted:#9999a3;--line:#2a2a31}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f7f7f8;font:15px/1.35 system-ui,-apple-system,Segoe UI,sans-serif}
+    .wrap{max-width:760px;margin:auto;padding:18px 16px 96px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .brand{font-size:25px;font-weight:900;letter-spacing:1px}.brand span{color:var(--red)}.sub{color:var(--muted);font-size:12px;margin-top:2px}
+    .pill{background:#281116;color:#ff6678;border:1px solid #5c1b29;border-radius:20px;padding:7px 11px;font-size:12px}
+    .search{width:100%;padding:13px 14px;border-radius:13px;background:var(--panel);border:1px solid var(--line);color:white;outline:none;margin:8px 0 15px}
+    .cats{display:flex;gap:8px;overflow:auto;padding-bottom:8px}.cat{white-space:nowrap;border:1px solid var(--line);background:var(--panel);color:#c7c7ce;border-radius:12px;padding:10px 14px}.cat.active{background:var(--red);border-color:var(--red);color:white}
+    .section{font-weight:800;margin:18px 0 12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:10px;min-width:0}
+    .photo{height:132px;border-radius:13px;background:radial-gradient(circle at 50% 35%,#3b2228,#19191e 68%);display:grid;place-items:center;font-size:44px}
+    .name{font-weight:750;margin:10px 0 5px}.desc{color:var(--muted);font-size:12px;min-height:31px}
+    .price-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}.price{font-size:17px;font-weight:850}
+    .add{border:0;background:var(--red);color:white;border-radius:10px;padding:9px 12px;font-weight:750}
+    .fav{float:right;border:0;border-radius:50%;width:31px;height:31px;background:#101014;color:white;font-size:17px;margin:-122px 0 0;position:relative}
+    .tabs{position:fixed;bottom:0;left:0;right:0;background:#101014;border-top:1px solid var(--line);display:flex;justify-content:center;z-index:4}
+    .tabrow{width:min(760px,100%);display:flex}.tab{flex:1;border:0;background:none;color:#858590;padding:12px 4px 10px;font-size:11px}.tab b{display:block;font-size:20px;margin-bottom:3px}.tab.active{color:#ff4056}
+    .page{display:none}.page.active{display:block}.empty{text-align:center;color:var(--muted);padding:42px 10px;background:var(--panel);border-radius:16px}
+    .profile{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}.profile strong{font-size:18px}
+    .row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+    .notice{font-size:11px;color:var(--muted);margin-top:18px;text-align:center}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><div><div class="brand">RED<span>RULL</span></div><div class="sub">Каталог одежды и аксессуаров</div></div><div class="pill">● Онлайн-каталог</div></header>
+  <main id="catalog" class="page active">
+    <input id="search" class="search" placeholder="Поиск товаров..." autocomplete="off">
+    <div class="cats" id="categories"></div>
+    <div class="section">Популярные товары</div>
+    <div class="grid" id="products"></div>
+  </main>
+  <main id="favorites" class="page"><div class="section">Избранное</div><div id="favoriteList" class="grid"></div></main>
+  <main id="cart" class="page"><div class="section">Корзина</div><div id="cartList"></div></main>
+  <main id="profile" class="page"><div class="section">Профиль</div><div class="profile"><strong id="userName">Покупатель</strong><div class="sub" id="userId">Гостевой просмотр</div><div class="row"><span>Товаров в корзине</span><b id="cartCount">0</b></div><div class="row"><span>Избранное</span><b id="favCount">0</b></div><div class="row"><span>Формат</span><b>Демо-каталог</b></div></div><p class="notice">Это демонстрационный каталог. Заказы и платежи не принимаются.</p></main>
+</div>
+<nav class="tabs"><div class="tabrow">
+  <button class="tab active" data-page="catalog"><b>⌂</b>Каталог</button>
+  <button class="tab" data-page="favorites"><b>♡</b>Избранное</button>
+  <button class="tab" data-page="cart"><b>▢</b>Корзина <span id="badge"></span></button>
+  <button class="tab" data-page="profile"><b>♙</b>Профиль</button>
+</div></nav>
+<script>
+const tg=window.Telegram?.WebApp; if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#09090b');tg.setBackgroundColor('#09090b')}catch(e){}}
+const items=[
+ {id:1,name:'Футболка REDRULL',cat:'Одежда',price:1490,desc:'Базовая хлопковая футболка',emoji:'👕'},
+ {id:2,name:'Худи REDRULL',cat:'Одежда',price:3290,desc:'Повседневное худи',emoji:'🧥'},
+ {id:3,name:'Кепка Classic',cat:'Аксессуары',price:1190,desc:'Кепка с лаконичным дизайном',emoji:'🧢'},
+ {id:4,name:'Сумка через плечо',cat:'Аксессуары',price:1790,desc:'Компактная городская сумка',emoji:'🎒'},
+ {id:5,name:'Чехол для телефона',cat:'Чехлы',price:790,desc:'Защитный чехол',emoji:'📱'},
+ {id:6,name:'Брелок',cat:'Аксессуары',price:390,desc:'Небольшой аксессуар',emoji:'🔑'}
+];
+let category='Все', favorites=new Set(), cart=new Map();
+const money=n=>new Intl.NumberFormat('ru-RU').format(n)+' ₽';
+const cats=['Все','Одежда','Аксессуары','Чехлы'];
+document.getElementById('categories').innerHTML=cats.map(c=>`<button class="cat ${c==='Все'?'active':''}" data-cat="${c}">${c}</button>`).join('');
+document.getElementById('categories').addEventListener('click',e=>{let b=e.target.closest('[data-cat]');if(!b)return;category=b.dataset.cat;document.querySelectorAll('.cat').forEach(x=>x.classList.toggle('active',x===b));render()});
+document.getElementById('search').addEventListener('input',render);
+function productCard(p){return `<article class="card"><div class="photo">${p.emoji}</div><button class="fav" data-fav="${p.id}">${favorites.has(p.id)?'♥':'♡'}</button><div class="name">${p.name}</div><div class="desc">${p.desc}</div><div class="price-row"><span class="price">${money(p.price)}</span><button class="add" data-add="${p.id}">Добавить</button></div></article>`}
+function render(){const q=document.getElementById('search').value.toLowerCase();let list=items.filter(p=>(category==='Все'||p.cat===category)&&p.name.toLowerCase().includes(q));document.getElementById('products').innerHTML=list.map(productCard).join('')||'<div class="empty">Ничего не найдено</div>';document.getElementById('favoriteList').innerHTML=[...favorites].map(id=>items.find(p=>p.id===id)).filter(Boolean).map(productCard).join('')||'<div class="empty">Пока нет избранных товаров</div>';let entries=[...cart].map(([id,n])=>({p:items.find(x=>x.id===id),n}));document.getElementById('cartList').innerHTML=entries.length?entries.map(({p,n})=>`<div class="row"><span>${p.name} × ${n}</span><b>${money(p.price*n)}</b></div>`).join('')+`<div class="row"><b>Итого</b><b>${money(entries.reduce((s,x)=>s+x.p.price*x.n,0))}</b></div>`:'<div class="empty">Корзина пока пуста</div>';let count=[...cart.values()].reduce((a,b)=>a+b,0);document.getElementById('badge').textContent=count?`(${count})`:'';document.getElementById('cartCount').textContent=count;document.getElementById('favCount').textContent=favorites.size}
+document.addEventListener('click',e=>{let f=e.target.closest('[data-fav]'),a=e.target.closest('[data-add]');if(f){let id=+f.dataset.fav;favorites.has(id)?favorites.delete(id):favorites.add(id);render()}if(a){let id=+a.dataset.add;cart.set(id,(cart.get(id)||0)+1);render();if(tg)tg.HapticFeedback?.impactOccurred('light')}});
+document.querySelector('.tabrow').addEventListener('click',e=>{let b=e.target.closest('[data-page]');if(!b)return;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===b.dataset.page))});
+if(tg?.initDataUnsafe?.user){let u=tg.initDataUnsafe.user;document.getElementById('userName').textContent=[u.first_name,u.last_name].filter(Boolean).join(' ')||'Покупатель';document.getElementById('userId').textContent='Telegram ID: '+u.id}
+render();
+</script>
+</body></html>
